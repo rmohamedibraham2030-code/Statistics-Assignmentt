@@ -1,0 +1,49 @@
+using System;
+using System.Linq;
+
+class OutlierDetector
+{
+    static void Main()
+    {
+        double[] numbers = { 115, 182, 191, 31, 196, 1099, 5, 172, 10, 179, 
+                            83, 21, 20, 21, 186, 177, 195, 193, 188, 199, 
+                            62, 109, 105, 183, 110 };
+
+        double[] sorted = (double[])numbers.Clone();
+        Array.Sort(sorted);
+
+        double q1 = Percentile(sorted, 25);
+        double q3 = Percentile(sorted, 75);
+        double iqr = q3 - q1;
+
+        double lowerBound = q1 - 1.5 * iqr;
+        double upperBound = q3 + 1.5 * iqr;
+
+        Console.WriteLine("=== Outlier Detection using IQR Method ===\n");
+        Console.WriteLine($"Q1 (25th)   : {q1:F2}");
+        Console.WriteLine($"Q3 (75th)   : {q3:F2}");
+        Console.WriteLine($"IQR         : {iqr:F2}");
+        Console.WriteLine($"Lower Bound : {lowerBound:F2}");
+        Console.WriteLine($"Upper Bound : {upperBound:F2}\n");
+
+        Console.WriteLine("Individual Numbers:");
+        foreach (var num in numbers)
+        {
+            string status = (num < lowerBound || num > upperBound) ? "🚨 OUTLIER" : "Normal";
+            Console.WriteLine($"{num,6} → {status}");
+        }
+
+        var outliers = numbers.Where(x => x < lowerBound || x > upperBound).ToList();
+        Console.WriteLine($"\nDetected Outliers: {string.Join(", ", outliers)}");
+    }
+
+    static double Percentile(double[] sorted, double percentile)
+    {
+        int n = sorted.Length;
+        double index = (percentile / 100.0) * (n - 1);
+        int lower = (int)Math.Floor(index);
+        int upper = (int)Math.Ceiling(index);
+        if (lower == upper) return sorted[lower];
+        return sorted[lower] + (index - lower) * (sorted[upper] - sorted[lower]);
+    }
+}
